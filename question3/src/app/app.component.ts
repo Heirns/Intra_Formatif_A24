@@ -6,7 +6,6 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatToolbarModule } from '@angular/material/toolbar';
-import { Data } from '@angular/router';
 
 
 @Component({
@@ -28,26 +27,33 @@ export class AppComponent {
       {
         nom: ['', [Validators.required]],
         roadnumber:['', [Validators.required, Validators.min(1000), Validators.max(9999)]],
-        postal:['', [Validators.pattern("^[A-Z][0-9][A-Z][ ]?[0-9][A-Z][0-9]$")]]
+        postal:['', [Validators.pattern("^[A-Z][0-9][A-Z][ ]?[0-9][A-Z][0-9]$")]],
+        commentaire: ['', [this.comment()]]
       },
     );
   }
 
   comment(): ValidatorFn{
-return (control: AbstractControl): ValidationErrors | null => {
-    const comment = control.value;
-    
-    // On regarde si le champ est rempli avant de faire la validation
-    if (!comment) {
-      // On attend que le champ soit rempli avant de le valider
-      return null;
-    }
-    // On fait notre validation. Includes retourne un booléen.
-    const estValide = comment.includes('@gmail.com');
+    return (control: AbstractControl): ValidationErrors | null => {
+      const comment = control.value;
+  
+      if (!comment || comment.trim() === '') {
+        return null;
+      }
+  
+      const wordCount = comment.trim().split(/\s+/).length;
 
-    // On retourne null si c'est valide, ou un objet décrivant l'erreur sinon
-    return estValide ? null : { estGmail: true };
-  };
+      const nom = this.formGroup?.get('nom')?.value;
+      if (nom && comment.includes(nom)) {
+        return { usernameMissing: true };
+      }
+
+      if (wordCount < 10) {
+      return { minimumWords: true };
+      }
+    
+      return null;
+    };
   }
 
 }
